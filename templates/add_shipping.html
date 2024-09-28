@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Pengiriman</title>
+    <link rel="stylesheet" href="./static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Tambah Pengiriman</h2>
+
+        <!-- Form untuk Tambah Pengiriman -->
+        <form method="POST" action="/add_shipping">
+            <label for="id_pengiriman">ID Pengiriman:</label>
+            <input type="text" id="id_pengiriman" name="id_pengiriman" required>
+
+            <label for="id_distributor">Distributor:</label>
+            <select id="id_distributor" name="id_distributor" required>
+                {% for distributor in distributors %}
+                <option value="{{ distributor.id_distributor }}">{{ distributor.nama_distributor }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="id_product">Produk:</label>
+            <select id="id_product" name="id_product" required>
+                {% for product in products %}
+                <option value="{{ product.id }}">{{ product.nama_product }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="jumlah">Jumlah:</label>
+            <input type="number" id="jumlah" name="jumlah" required>
+
+            <label for="tanggal_pengiriman">Tanggal Pengiriman:</label>
+            <input type="date" id="tanggal_pengiriman" name="tanggal_pengiriman" required>
+
+            <label for="total_berat">Total Berat (kg):</label>
+            <input type="number" id="total_berat" name="total_berat" required>
+
+            <label for="total_harga">Total Harga (Rp):</label>
+            <input type="number" id="total_harga" name="total_harga" required>
+
+            <label for="status">Status:</label>
+            <input type="text" id="status" name="status" required>
+
+            <button type="submit" class="crud-btn">Simpan</button>
+        </form>
+    </div>
+</body>
+</html>

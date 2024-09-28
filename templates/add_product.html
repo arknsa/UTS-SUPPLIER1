@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Barang</title>
+    <link rel="stylesheet" href="./static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Tambah Barang</h2>
+
+        <!-- Form untuk Tambah Barang -->
+        <form id="formTambahBarang" method="POST" action="/add_product">
+            <label for="id_barang">ID Barang:</label>
+            <input type="text" id="id_barang" name="id_barang" required>
+
+            <label for="nama_product">Nama Barang:</label>
+            <input type="text" id="nama_product" name="nama_product" required>
+
+            <label for="kategori">Kategori:</label>
+            <input type="text" id="kategori" name="kategori" required>
+
+            <label for="stock">Stok:</label>
+            <input type="number" id="stock" name="stock" required>
+
+            <label for="harga">Harga Satuan:</label>
+            <input type="number" id="harga" name="harga" required>
+
+            <label for="berat">Berat:</label>
+            <input type="text" id="berat" name="berat" required>
+
+            <label for="size">Size (inch):</label>
+            <input type="text" id="size" name="size" required>
+
+            <label for="width">Width (inch):</label>
+            <input type="text" id="width" name="width" required>
+
+            <label for="genre">Genre:</label>
+            <input type="text" id="genre" name="genre" required>
+
+            <label for="warna">Warna:</label>
+            <input type="text" id="warna" name="warna" required>
+
+            <label for="deskripsi">Deskripsi Barang:</label>
+            <input type="text" id="deskripsi" name="deskripsi" required>
+
+            <label for="link_gambar_barang">Link Gambar:</label>
+            <input type="url" id="link_gambar_barang" name="link_gambar_barang" required>
+
+            <button type="submit" class="crud-btn">Simpan</button>
+        </form>
+    </div>
+</body>
+</html>

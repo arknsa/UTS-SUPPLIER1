@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Produk</title>
+    <link rel="stylesheet" href="./static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Daftar Produk</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Barang</th>
+                    <th>Nama Produk</th>
+                    <th>Kategori</th>
+                    <th>Stok</th>
+                    <th>Harga</th>
+                    <th>Berat</th>
+                    <th>Size</th>
+                    <th>Warna</th>
+                    <th>Deskripsi</th>
+                    <th>Gambar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.id_barang }}</td>
+                    <td>{{ product.nama_product }}</td>
+                    <td>{{ product.kategori }}</td>
+                    <td>{{ product.stock }}</td>
+                    <td>{{ product.harga }}</td>
+                    <td>{{ product.berat }}</td>
+                    <td>{{ product.size }}</td>
+                    <td>{{ product.warna }}</td>
+                    <td>{{ product.deskripsi }}</td>
+                    <td><img src="{{ product.link_gambar_barang }}" alt="{{ product.nama_product }}" width="50"></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

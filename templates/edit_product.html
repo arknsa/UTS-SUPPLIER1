@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product</title>
+    <link rel="stylesheet" href="./static/styles.css">
+    <style>
+        /* Tambahkan grid layout untuk form */
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        form label {
+            grid-column: 1 / span 1; /* Label satu kolom */
+        }
+
+        form input,
+        form textarea {
+            grid-column: 2 / span 1; /* Input field satu kolom */
+            width: 100%; /* Agar field memenuhi kolom */
+        }
+
+        form textarea {
+            height: 100px; /* Atur tinggi untuk textarea */
+        }
+
+        /* Tombol diatur di bawah semua input */
+        form button {
+            grid-column: 1 / span 2;
+            justify-self: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Product</h2>
+
+        <form action="/edit_product/{{ product.id_barang }}" method="POST">
+            <label for="nama_product">Nama Barang:</label>
+            <input type="text" id="nama_product" name="nama_product" value="{{ product.nama_product }}" required>
+
+            <label for="kategori">Kategori:</label>
+            <input type="text" id="kategori" name="kategori" value="{{ product.kategori }}" required>
+
+            <label for="stock">Stok:</label>
+            <input type="number" id="stock" name="stock" value="{{ product.stock }}" required>
+
+            <label for="harga">Harga:</label>
+            <input type="number" id="harga" name="harga" value="{{ product.harga }}" required>
+
+            <label for="berat">Berat:</label>
+            <input type="text" id="berat" name="berat" value="{{ product.berat }}" required>
+
+            <label for="size">Size (inch):</label>
+            <input type="text" id="size" name="size" value="{{ product.size }}" required>
+
+            <label for="width">Width (inch):</label>
+            <input type="text" id="width" name="width" value="{{ product.width }}" required>
+
+            <label for="genre">Genre:</label>
+            <input type="text" id="genre" name="genre" value="{{ product.genre }}" required>
+
+            <label for="warna">Warna:</label>
+            <input type="text" id="warna" name="warna" value="{{ product.warna }}" required>
+
+            <label for="deskripsi">Deskripsi:</label>
+            <textarea id="deskripsi" name="deskripsi" required>{{ product.deskripsi }}</textarea>
+
+            <label for="link_gambar_barang">Link Gambar:</label>
+            <input type="url" id="link_gambar_barang" name="link_gambar_barang" value="{{ product.link_gambar_barang }}" required>
+
+            <button type="submit" class="crud-btn">Update Product</button>
+        </form>
+    </div>
+</body>
+</html>

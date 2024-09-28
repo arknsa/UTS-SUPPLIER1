@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Transaksi</title>
+    <link rel="stylesheet" href="./static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Transaksi</h2>
+
+        <form method="POST" action="{{ url_for('edit_transaksi', id=transaksi.id) }}">
+            <label for="resi">Resi:</label>
+            <input type="text" id="resi" name="resi" value="{{ transaksi.resi }}" required>
+
+            <label for="id_retail">Retail:</label>
+            <select id="id_retail" name="id_retail" required>
+                {% for retail in retails %}
+                <option value="{{ retail.id_retail }}" {% if retail.id_retail == transaksi.id_retail %}selected{% endif %}>
+                    {{ retail.nama_retail }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <label for="jumlah_barang">Jumlah Barang:</label>
+            <input type="number" id="jumlah_barang" name="jumlah_barang" value="{{ transaksi.jumlah_barang }}" required>
+
+            <label for="total_harga">Total Harga (Rp):</label>
+            <input type="number" id="total_harga" name="total_harga" value="{{ transaksi.total_harga }}" required>
+
+            <label for="total_berat">Total Berat (kg):</label>
+            <input type="number" id="total_berat" name="total_berat" value="{{ transaksi.total_berat }}" required>
+
+            <button type="submit" class="crud-btn">Simpan</button>
+        </form>
+    </div>
+</body>
+</html>

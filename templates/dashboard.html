@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7fb;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .sidebar {
+            background-color: #1363c6;
+            color: white;
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: -250px;
+            transition: left 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar h2 {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar li a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar li a:hover {
+            background-color: #0d4ea3;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1001;
+            background-color: #1363c6;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .navbar {
+            background-color: #1363c6;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+        }
+
+        .nav-left {
+            flex: 1;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .icon {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+
+        .icon img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .user-admin {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-admin img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-admin span {
+            color: #fff;
+        }
+
+        .container {
+            margin-top: 80px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.open ~ .container {
+            margin-left: 250px;
+        }
+
+        .summary-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .summary-item {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1 1 calc(33.333% - 20px);
+            margin: 10px;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .summary-item h3 {
+            font-size: 2.5em;
+            color: #1363c6;
+        }
+
+        .summary-item p {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .summary-item span {
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .sales-statistics {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 2 1 600px;
+        }
+
+        .sales-statistics h2 {
+            margin-bottom: 10px;
+            color: #1363c6;
+        }
+
+        .export-buttons {
+            margin-top: 10px;
+        }
+
+        .daily-sales {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex: 1 1 300px;
+        }
+
+        .daily-sales h3 {
+            font-size: 2.5em;
+            color: #1363c6;
+            margin-bottom: 10px;
+        }
+
+        .daily-sales p {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #1e88e5;
+        }
+
+        .daily-sales span {
+            font-size: 1.1em;
+            color: #777;
+        }
+
+        .notification {
+            position: fixed;
+            top: 60px;
+            right: -300px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            transition: right 0.3s ease;
+            z-index: 1002;
+        }
+
+        .notification.show {
+            right: 20px;
+        }
+
+        .notification-close {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-wrap: wrap;
+            }
+
+            .nav-left, .nav-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .nav-right {
+                margin-top: 10px;
+            }
+
+            .sidebar.open ~ .container {
+                margin-left: 0;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .summary-item {
+                flex: 1 1 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 10px;
+            }
+
+            .icon {
+                margin-right: 10px;
+            }
+
+            .user-admin img {
+                width: 30px;
+                height: 30px;
+            }
+
+            .container {
+                padding: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/manage_product">Products</a></li>
+            <li><a href="/manage_shipping">Shipping</a></li>
+            <li><a href="/manage_stock">Stock</a></li>
+            <li><a href="/manage_transaksi">Transaction</a></li>
+            <li><a href="#">Settings</a></li>
+        </ul>
+    </div>
+
+    <button id="sidebar-toggle">&#9776;</button>
+
+    <div class="navbar">
+        <div class="nav-left">
+            <div class="logo">My Dashboard</div>
+        </div>
+        <div class="nav-right">
+            <div class="icon" onclick="showNotification()">
+                <img src="https://img.icons8.com/ios-filled/50/ffffff/bell.png" alt="Notification">
+            </div>
+            <a href="/account">
+                <div class="user-admin">
+                    <img src="https://via.placeholder.com/35" alt="User Admin">
+                    <span>Admin</span>
+                </div>
+            </a>            
+        </div>
+    </div>
+    <div class="notification" id="notification">
+        <span>New notification received</span>
+        <span class="notification-close" onclick="closeNotification()">×</span>
+    </div>
+
+    <div class="container">
+        <div class="summary-container">
+            <div class="summary-item">
+                <h3>120</h3>
+                <p>Total Products</p>
+                <span>This Month</span>
+            </div>
+            <div class="summary-item">
+                <h3>150</h3>
+                <p>Total Shipping</p>
+                <span>This Month</span>
+            </div>
+            <div class="summary-item">
+                <h3>75</h3>
+                <p>Total Transaction</p>
+                <span>This Month</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sales-statistics">
+                <h2>Sales Statistics</h2>
+                <canvas id="salesChart"></canvas>
+                <div class="export-buttons">
+                    <button onclick="exportToPDF()">Export to PDF</button>
+                    <button onclick="exportToExcel()">Export to Excel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Toggle Functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+
+        sidebarToggle.onclick = function() {
+            sidebar.classList.toggle('open');
+        };
+
+        // Sales Chart Initialization
+        const salesChartData = {
+            labels: ['Ban Dalam A', 'Ban Dalam B', 'Ban Dalam C'],
+            datasets: [
+                {
+                    label: 'Penjualan Ban Dalam',
+                    data: [12000, 19000, 3000],
+                    backgroundColor: 'rgba(42, 119, 213, 0.5)',
+                    borderColor: '#2a77d5',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Penjualan Ban Luar',
+                    data: [5000, 2000, 30000],
+                    backgroundColor: 'rgba(173, 216, 230, 0.5)',
+                    borderColor: '#add8e6',
+                    borderWidth: 2
+                }
+            ]
+        };
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(ctx, {
+            type: 'bar',
+            data: salesChartData,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Notification Functions
+        function showNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function closeNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.remove('show');
+        }
+
+        function exportToPDF() {
+            alert("Exporting to PDF...");
+        }
+
+        function exportToExcel() {
+            alert("Exporting to Excel...");
+        }
+    </script>
+</body>
+</html>

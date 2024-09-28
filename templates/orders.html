@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buat Pesanan</title>
+    <link rel="stylesheet" href="./static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Formulir Buat Pesanan</h2>
+
+        <form action="/orders" method="POST">
+            <label for="list_barang">List Barang (pisahkan dengan koma):</label>
+            <input type="text" name="list_barang" id="list_barang" required>
+
+            <label for="alamat_pembeli">Alamat Pembeli:</label>
+            <input type="text" name="alamat_pembeli" id="alamat_pembeli" required>
+
+            <label for="kode_jasa">Kode Jasa Pengiriman:</label>
+            <input type="text" name="kode_jasa" id="kode_jasa" required>
+
+            <button type="submit" class="crud-btn">Buat Pesanan</button>
+        </form>
+    </div>
+</body>
+</html>
