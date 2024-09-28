@@ -126,8 +126,30 @@
             color: white;
             padding: 10px 15px;
             text-decoration: none;
+            border: none;
             border-radius: 5px;
             display: inline-block;
+            cursor: pointer;
+        }
+        
+        .crud-btn.delete {
+            background-color: #e74c3c;
+        }
+        
+        .crud-btn.view {
+            background-color: #27ae60;
+        }
+        
+        .crud-btn:hover {
+            background-color: #0d4ea3;
+        }
+        
+        .crud-btn.delete:hover {
+            background-color: #c0392b;
+        }
+        
+        .crud-btn.view:hover {
+            background-color: #1e8449;
         }
 
         table {
@@ -214,7 +236,7 @@
     <!-- Navbar -->
     <div class="navbar">
         <div class="nav-left">
-            <h1>Admin Dashboard</h1>
+            <h1></h1>
         </div>
         <div class="nav-right">
             <div class="user-admin">
@@ -237,8 +259,8 @@
             <table id="manageProduct">
                 <thead>
                     <tr>
-                        <th>ID Barang</th>
-                        <th>Nama Barang</th>
+                        <th>ID Produk</th>
+                        <th>Nama Produk</th>
                         <th>Kategori</th>
                         <th>Stok</th>
                         <th>Harga Satuan</th>
@@ -256,8 +278,8 @@
                     <!-- Looping Produk dari Backend -->
                     {% for product in products %}
                     <tr>
-                        <td>{{ product.id_barang }}</td>
-                        <td>{{ product.nama_product }}</td>
+                        <td>{{ product.id_produk }}</td>
+                        <td>{{ product.nama_produk }}</td>
                         <td>{{ product.kategori }}</td>
                         <td>{{ product.stock }}</td>
                         <td>{{ product.harga }}</td>
@@ -270,11 +292,11 @@
                         <td><img src="{{ product.link_gambar_barang }}" alt="{{ product.nama_product }}" width="50"></td>
                         <td>
                             <div class="action-buttons">
-                                <a href="/edit_product/{{ product.id_barang }}" class="crud-btn">Edit</a>
-                                <form action="/delete_product/{{ product.id_barang }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="crud-btn">Hapus</button>
+                                <a href="/edit_product/{{ product.id_produk }}" class="crud-btn">Edit</a>
+                                <form action="/delete_product/{{ product.id_produk }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="crud-btn delete">Hapus</button>
                                 </form>
-                                <a href="/view_product/{{ product.id_barang }}" class="crud-btn">View</a>
+                                <a href="/view_product/{{ product.id_produk }}" class="crud-btn view">View</a>
                             </div>
                         </td>
                     </tr>

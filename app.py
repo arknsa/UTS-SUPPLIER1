@@ -1,300 +1,259 @@
-from flask import Flask, request, jsonify
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from models import Base, Transaksi, Pembelian, Supplier, Produk, User
-import requests
-import os
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_bcrypt import Bcrypt
+from extensions import db 
+from flask_sqlalchemy import SQLAlchemy
+from models import Produk, Supplier, Transaksi, Pembelian, User  # Imported updated models
+from datetime import datetime
+from flask_login import LoginManager
 
 app = Flask(__name__)
 
-# Konfigurasi MySQL
-DB_USER = os.getenv('root')
-DB_PASSWORD = os.getenv('')
-DB_HOST = os.getenv('localhost')
-DB_NAME = os.getenv('uts_supplier1')
+# Configurations
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/uts_supplier1'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['DEBUG'] = True
+app.config['SQLALCHEMY_ECHO'] = True
 
-# Konfigurasi SQLAlchemy untuk MySQL
-DATABASE_URI = f"mysql+pymysql://root:@localhost/uts_supplier1"
-engine = create_engine(DATABASE_URI)
-Base.metadata.bind = engine
-DBSession = sessionmaker(bind=engine)
+db.init_app(app)
 
-# Endpoint API distributor
-DISTRIBUTOR_API = os.getenv('DISTRIBUTOR_API')
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
-@app.route('/check_price', methods=['POST'])
-def check_price():
-    session = DBSession()
-    data = request.json
 
+# Fungsi untuk memuat user berdasarkan id (dibutuhkan oleh Flask-Login)
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        user = User.query.filter_by(username=username).first()
+
+        if user is None:
+            flash('Username tidak ditemukan.', 'danger')
+            return redirect(url_for('login'))
+
+        if user and bcrypt.check_password_hash(user.password, password):
+            login_user(user)
+            flash('Login berhasil!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Password salah.', 'danger')
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+
+# Route untuk logout
+@app.route('/logout')
+def logout():
+    logout_user()
+    flash('Anda telah logout!', 'success')
+    return redirect(url_for('login'))
+
+# Dashboard
+@app.route('/dashboard')
+@login_required
+def dashboard():
     try:
-        # Cek ongkir dari distributor
-        ongkir_response = requests.post(f"{DISTRIBUTOR_API}/api/distributors6/orders/cek_ongkir", json={
-            "id_log": data['id_log'],
-            "kota_asal": data['kota_asal'],
-            "kota_tujuan": data['kota_tujuan'],
-            "quantity": data['quantity'],
-            "berat": data['total_berat_barang']
-        })
-        ongkir_data = ongkir_response.json()
-
-        # Membuat objek Transaksi baru
-        new_transaction = Transaksi(
-            id_supplier=data['id_supplier'],
-            id_produk=data['id_produk'],
-            id_retail=data['id_retail'],
-            quantity=data['quantity'],
-            total_harga_barang=data['total_harga_barang'],
-            total_berat_barang=data['total_berat_barang'],
-            kota_asal=data['kota_asal'],
-            kota_tujuan=data['kota_tujuan'],
-            jumlah=data['jumlah'],
-            harga_pengiriman=ongkir_data['harga_pengiriman']
-        )
-
-        session.add(new_transaction)
-        session.commit()
-
-        return jsonify({
-            "message": "Pemeriksaan harga berhasil",
-            "transaction_id": new_transaction.id_log,
-            "harga_pengiriman": ongkir_data['harga_pengiriman'],
-            "lama_pengiriman": ongkir_data['lama_pengiriman']
-        }), 200
-
+        return render_template('dashboard.html')
     except Exception as e:
-        session.rollback()
-        return jsonify({"error": str(e)}), 400
+        print(f"Error rendering dashboard: {e}")
+        return "An error occurred.", 500
 
-    finally:
-        session.close()
 
-@app.route('/place_order', methods=['POST'])
-def place_order():
-    session = DBSession()
-    data = request.json
+# Route untuk admin
+@app.route('/admin')
+@login_required
+def admin():
+    return render_template('admin.html')
 
-    try:
-        # Fetch the corresponding Transaksi
-        transaction = session.query(Transaksi).filter_by(id_log=data['id_log']).first()
-        if not transaction:
-            return jsonify({"error": "Transaksi tidak ditemukan"}), 404
-
-        # Melakukan pemesanan ke distributor
-        order_response = requests.post(f"{DISTRIBUTOR_API}/api/distributors6/orders/fix_kirim", json={
-            "id_log": data['id_log']
-        })
-        order_data = order_response.json()
-
-        # Membuat objek Pembelian baru
-        new_purchase = Pembelian(
-            id_log=data['id_log'],
-            quantity=transaction.quantity,
-            total_harga_barang=transaction.total_harga_barang,
-            total_berat_barang=transaction.total_berat_barang,
-            jumlah=transaction.jumlah,
-            no_resi=order_data['no_resi'],
-            harga_pengiriman=order_data['harga_pengiriman']
-        )
-
-        session.add(new_purchase)
-        session.commit()
-
-        return jsonify({
-            "message": "Pemesanan berhasil dilakukan",
-            "purchase_id": new_purchase.id_pembelian,
-            "no_resi": order_data['no_resi'],
-            "lama_pengiriman": order_data['lama_pengiriman']
-        }), 200
-
-    except Exception as e:
-        session.rollback()
-        return jsonify({"error": str(e)}), 400
-
-    finally:
-        session.close()
-
-@app.route('/check_status/<string:no_resi>', methods=['GET'])
-def check_status(no_resi):
-    try:
-        status_response = requests.get(f"{DISTRIBUTOR_API}/api/status/{no_resi}")
-        status_data = status_response.json()
-        return jsonify(status_data), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
-# Endpoint untuk supplier
+# Suppliers - Mengembalikan semua data supplier dalam format JSON
 @app.route('/suppliers', methods=['GET'])
-def get_suppliers():
-    session = DBSession()
-    try:
-        suppliers = session.query(Supplier).all()
-        suppliers_info = [{
-            "id_supplier": s.id_supplier,
-            "nama_supplier": s.nama_supplier,
-            "contact": s.contact,
-            "alamat_supplier": s.alamat_supplier
-        } for s in suppliers]
-        return jsonify(suppliers_info), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-    finally:
-        session.close()
+def suppliers():
+    suppliers_info = Supplier.query.all()
+    suppliers_list = [{
+        "id_supplier": supplier.id_supplier,
+        "nama_supplier": supplier.nama_supplier,
+        "contact": supplier.contact,
+        "alamat_supplier": supplier.alamat_supplier,
+        "created_at": supplier.created_at.strftime('%Y-%m-%d %H:%M:%S')
+    } for supplier in suppliers_info]
+
+    return jsonify(suppliers_list)
 
 @app.route('/products', methods=['GET'])
-def get_products():
-    session = DBSession()
+def products():
     try:
-        products = session.query(Produk).all()
-        all_products = [{
-            "id_produk": p.id_produk,
-            "nama_produk": p.nama_produk,
-            "kategori": p.kategori,
-            "stock": p.stock,
-            "harga": float(p.harga),
-            "berat": float(p.berat)
-        } for p in products]
-        return jsonify(all_products), 200
+        all_products = Produk.query.all()
+        if not all_products:
+            return jsonify({"message": "No products found"}), 200
+        
+        products_list = [{
+            "id_barang": product.id_produk,  # Use id_produk since that's the primary key in your model
+            "nama_produk": product.nama_produk,
+            "kategori": product.kategori,
+            "stock": product.stock,
+            "harga": float(product.harga),
+            "berat": float(product.berat),
+            "size": product.size,
+            "width": product.width,
+            "genre": product.genre,
+            "warna": product.warna,
+            "deskripsi": product.deskripsi,
+            "link_gambar_barang": product.link_gambar_barang,
+            "created_at": product.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            "updated_at": product.updated_at.strftime('%Y-%m-%d %H:%M:%S')
+        } for product in all_products]
+
+        return jsonify(products_list), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
-    finally:
-        session.close()
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/orders', methods=['POST'])
-def create_order():
-    session = DBSession()
-    data = request.json
-    try:
-        # Implementasi logika pemesanan di sini
-        # Anda perlu menyesuaikan ini dengan kebutuhan spesifik Anda
-        # Contoh sederhana:
-        new_transaction = Transaksi(
-            id_supplier=data['id_supplier'],
-            id_produk=data['id_produk'],
-            id_retail=data['id_retail'],
-            quantity=data['quantity'],
-            kota_tujuan=data['alamatpembeli'],
-            # ... tambahkan field lain sesuai kebutuhan
-        )
-        session.add(new_transaction)
-        session.commit()
 
-        # Simulasi mendapatkan resi
-        resi = f"RESI{new_transaction.id_log}"
+# Route untuk menampilkan halaman Manage Product
+@app.route('/manage_product')
+@login_required
+def manage_product():
+    products = Produk.query.all()
+    return render_template('manage_product.html', products=products)
 
-        return jsonify({"resi": resi}), 200
-    except Exception as e:
-        session.rollback()
-        return jsonify({"error": str(e)}), 400
-    finally:
-        session.close()
+# Route untuk menambah produk baru
+@app.route('/add_product', methods=['GET', 'POST'])
+@login_required
+def add_product():
+    if request.method == 'POST':
+        # Ambil data dari form HTML
+        nama_produk = request.form['nama_produk']
+        kategori = request.form['kategori']
+        stock = int(request.form['stock'])
+        harga = float(request.form['harga'])
+        berat = float(request.form['berat'])
+        size = request.form['size']
+        width = request.form['width']
+        genre = request.form['genre']
+        warna = request.form['warna']
+        deskripsi = request.form['deskripsi']
+        link_gambar_barang = request.form['link_gambar_barang']
 
-# Create a new product
-@app.route('/products', methods=['POST'])
-def create_product():
-    session = DBSession()
-    data = request.json
-    try:
+        # Buat objek produk baru
         new_product = Produk(
-            nama_produk=data['nama_produk'],
-            kategori=data['kategori'],
-            stock=data['stock'],
-            harga=data['harga'],
-            berat=data['berat']
+            nama_produk=nama_produk,
+            kategori=kategori,
+            stock=stock,
+            harga=harga,
+            berat=berat,
+            size=size,
+            width=width,
+            genre=genre,
+            warna=warna,
+            deskripsi=deskripsi,
+            link_gambar_barang=link_gambar_barang
         )
-        session.add(new_product)
-        session.commit()
-        return jsonify({
-            "message": "Produk berhasil ditambahkan",
-            "id_produk": new_product.id_produk
-        }), 201
-    except Exception as e:
-        session.rollback()
-        return jsonify({"error": str(e)}), 400
-    finally:
-        session.close()
 
-# Read all products
-@app.route('/products', methods=['GET'])
-def get_all_products():
-    session = DBSession()
-    try:
-        products = session.query(Produk).all()
-        return jsonify([{
-            "id_produk": p.id_produk,
-            "nama_produk": p.nama_produk,
-            "kategori": p.kategori,
-            "stock": p.stock,
-            "harga": float(p.harga),
-            "berat": float(p.berat)
-        } for p in products]), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-    finally:
-        session.close()
+        db.session.add(new_product)
+        db.session.commit()
+        return redirect(url_for('manage_product'))
+    
+    return render_template('add_product.html')
 
-# Read a specific product
-@app.route('/products/<int:id_produk>', methods=['GET'])
-def get_product(id_produk):
-    session = DBSession()
-    try:
-        product = session.query(Produk).filter_by(id_produk=id_produk).first()
-        if product:
-            return jsonify({
-                "id_produk": product.id_produk,
-                "nama_produk": product.nama_produk,
-                "kategori": product.kategori,
-                "stock": product.stock,
-                "harga": float(product.harga),
-                "berat": float(product.berat)
-            }), 200
-        else:
-            return jsonify({"message": "Produk tidak ditemukan"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-    finally:
-        session.close()
+@app.route('/edit_product/<int:id_produk>', methods=['GET', 'POST'])
+@login_required
+def edit_product(id_produk):
+    product = Produk.query.filter_by(id_produk=id_produk).first()
 
-# Update a product
-@app.route('/products/<int:id_produk>', methods=['PUT'])
-def update_product(id_produk):
-    session = DBSession()
-    data = request.json
-    try:
-        product = session.query(Produk).filter_by(id_produk=id_produk).first()
-        if product:
-            product.nama_produk = data.get('nama_produk', product.nama_produk)
-            product.kategori = data.get('kategori', product.kategori)
-            product.stock = data.get('stock', product.stock)
-            product.harga = data.get('harga', product.harga)
-            product.berat = data.get('berat', product.berat)
-            session.commit()
-            return jsonify({"message": "Produk berhasil diperbarui"}), 200
-        else:
-            return jsonify({"message": "Produk tidak ditemukan"}), 404
-    except Exception as e:
-        session.rollback()
-        return jsonify({"error": str(e)}), 400
-    finally:
-        session.close()
+    if not product:
+        flash('Produk tidak ditemukan', 'danger')
+        return redirect(url_for('manage_product'))
 
-# Delete a product
-@app.route('/products/<int:id_produk>', methods=['DELETE'])
+    if request.method == 'POST':
+        # Update data produk dengan data dari form
+        product.nama_produk = request.form['nama_produk']
+        product.kategori = request.form['kategori']
+        product.stock = int(request.form['stock'])
+        product.harga = float(request.form['harga'])
+        product.berat = float(request.form['berat'])
+        product.size = request.form['size']
+        product.width = request.form['width']
+        product.genre = request.form['genre']
+        product.warna = request.form['warna']
+        product.deskripsi = request.form['deskripsi']
+        product.link_gambar_barang = request.form['link_gambar_barang']
+
+        db.session.commit()
+        flash('Produk berhasil diperbarui', 'success')
+        return redirect(url_for('manage_product'))
+
+    return render_template('edit_product.html', product=product)
+
+
+# Route untuk menghapus produk
+@app.route('/delete_product/<int:id_produk>', methods=['POST'])
+@login_required
 def delete_product(id_produk):
-    session = DBSession()
-    try:
-        product = session.query(Produk).filter_by(id_produk=id_produk).first()
-        if product:
-            session.delete(product)
-            session.commit()
-            return jsonify({"message": "Produk berhasil dihapus"}), 200
-        else:
-            return jsonify({"message": "Produk tidak ditemukan"}), 404
-    except Exception as e:
-        session.rollback()
-        return jsonify({"error": str(e)}), 400
-    finally:
-        session.close()
+    product = Produk.query.filter_by(id_produk=id_produk).first()
+    db.session.delete(product)
+    db.session.commit()
+    return redirect(url_for('manage_product'))
 
+# Route untuk melihat detail produk
+@app.route('/view_product/<int:id_produk>', methods=['GET'])
+@login_required
+def view_product(id_produk):
+    product = Produk.query.filter_by(id_produk=id_produk).first()
+
+    if not product:
+        flash('Produk tidak ditemukan', 'danger')
+        return redirect(url_for('manage_product'))
+
+    return render_template('view_product.html', product=product)
+
+
+# Orders - Buat pesanan baru
+@app.route('/orders', methods=['POST'])
+@login_required
+def orders():
+    data = request.get_json()
+    list_barang = data.get('list_barang')
+
+    # Validate list_barang
+    if not list_barang:
+        return jsonify({"error": "List barang tidak boleh kosong"}), 400
+
+    # Perhitungan sederhana
+    total_harga = len(list_barang.split(',')) * 1000
+    total_berat = len(list_barang.split(',')) * 1
+
+    # Buat nomor resi
+    resi = f"RESI-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+
+    # Simpan transaksi
+    new_transaksi = Transaksi(
+        id_retail=current_user.id_user,  # Assuming a user is linked to retail here
+        total_harga_barang=total_harga,
+        total_berat_barang=total_berat,
+        kota_asal='Kota Asal',  # Placeholder for city data
+        kota_tujuan='Kota Tujuan',  # Placeholder for city data
+        jumlah=len(list_barang.split(',')),
+        harga_pengiriman=0.0
+    )
+    db.session.add(new_transaksi)
+    db.session.commit()
+
+    return jsonify({
+        "resi": resi,
+        "message": "Pesanan berhasil dibuat",
+        "total_harga": total_harga,
+        "total_berat": total_berat
+    }), 200
+
+# Run the app
 if __name__ == '__main__':
     app.run(debug=True)

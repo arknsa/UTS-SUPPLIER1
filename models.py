@@ -1,91 +1,97 @@
-from sqlalchemy import Column, Integer, String, Numeric, Text, DateTime, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+# models.py
+from extensions import db
 from datetime import datetime
+from flask_login import UserMixin
 
-Base = declarative_base()
-
-class Pembelian(Base):
+class Pembelian(db.Model):
     __tablename__ = 'db_pembelian'
 
-    id_pembelian = Column(Integer, primary_key=True, autoincrement=True)
-    id_log = Column(Integer, ForeignKey('db_transaksi.id_log'))
-    quantity = Column(Integer)
-    total_harga_barang = Column(Numeric(10, 2))
-    total_berat_barang = Column(Numeric(10, 2))
-    jumlah = Column(Integer)
-    no_resi = Column(String(255))
-    harga_pengiriman = Column(Numeric(10, 2))
-    tanggal_pembelian = Column(DateTime, default=datetime.utcnow)
+    id_pembelian = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_log = db.Column(db.Integer, db.ForeignKey('db_transaksi.id_log'))
+    quantity = db.Column(db.Integer)
+    total_harga_barang = db.Column(db.Numeric(10, 2))
+    total_berat_barang = db.Column(db.Numeric(10, 2))
+    jumlah = db.Column(db.Integer)
+    no_resi = db.Column(db.String(255))
+    harga_pengiriman = db.Column(db.Numeric(10, 2))
+    tanggal_pembelian = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    transaksi = relationship("Transaksi", back_populates="pembelian")
+    # Relationship dengan Transaksi
+    transaksi = db.relationship('Transaksi', back_populates='pembelian')
 
-class Produk(Base):
+class Produk(db.Model):
     __tablename__ = 'db_produk'
 
-    id_produk = Column(Integer, primary_key=True, autoincrement=True)
-    id_barang = Column(Integer)
-    nama_produk = Column(String(255))
-    kategori = Column(String(255))
-    stock = Column(Integer)
-    stock_minimum = Column(Integer)
-    stock_maximum = Column(Integer)
-    harga = Column(Numeric(10, 2))
-    berat = Column(Numeric(10, 2))
-    size = Column(String(50))
-    width = Column(String(50))
-    genre = Column(String(255))
-    warna = Column(String(255))
-    deskripsi = Column(Text)
-    link_gambar_barang = Column(String(255))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id_produk = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nama_produk = db.Column(db.String(255))
+    kategori = db.Column(db.String(255))
+    stock = db.Column(db.Integer)
+    stock_minimum = db.Column(db.Integer)
+    stock_maximum = db.Column(db.Integer)
+    harga = db.Column(db.Numeric(10, 2))
+    berat = db.Column(db.Numeric(10, 2))
+    size = db.Column(db.String(50))
+    width = db.Column(db.String(50))
+    genre = db.Column(db.String(255))
+    warna = db.Column(db.String(255))
+    deskripsi = db.Column(db.Text)
+    link_gambar_barang = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    suppliers = relationship("Supplier", secondary="db_supplier_produk", back_populates="products")
-    transaksi = relationship("Transaksi", back_populates="produk")
+    # Relationships
+    suppliers = db.relationship('Supplier', secondary='db_supplier_produk', back_populates='products')
+    transaksi = db.relationship('Transaksi', back_populates='produk')
 
-class Supplier(Base):
+class Supplier(db.Model):
     __tablename__ = 'db_supplier'
 
-    id_supplier = Column(Integer, primary_key=True, autoincrement=True)
-    nama_supplier = Column(String(255))
-    contact = Column(String(255))
-    alamat_supplier = Column(String(255))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    id_supplier = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nama_supplier = db.Column(db.String(255))
+    contact = db.Column(db.String(255))
+    alamat_supplier = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    products = relationship("Produk", secondary="db_supplier_produk", back_populates="suppliers")
-    transaksi = relationship("Transaksi", back_populates="supplier")
+    # Relationships
+    products = db.relationship('Produk', secondary='db_supplier_produk', back_populates='suppliers')
+    transaksi = db.relationship('Transaksi', back_populates='supplier')
 
-class SupplierProduk(Base):
+class SupplierProduk(db.Model):
     __tablename__ = 'db_supplier_produk'
 
-    id_supplier = Column(Integer, ForeignKey('db_supplier.id_supplier'), primary_key=True)
-    id_produk = Column(Integer, ForeignKey('db_produk.id_produk'), primary_key=True)
+    id_supplier = db.Column(db.Integer, db.ForeignKey('db_supplier.id_supplier'), primary_key=True)
+    id_produk = db.Column(db.Integer, db.ForeignKey('db_produk.id_produk'), primary_key=True)
 
-class Transaksi(Base):
+class Transaksi(db.Model):
     __tablename__ = 'db_transaksi'
 
-    id_log = Column(Integer, primary_key=True, autoincrement=True)
-    id_supplier = Column(Integer, ForeignKey('db_supplier.id_supplier'))
-    id_produk = Column(Integer, ForeignKey('db_produk.id_produk'))
-    id_retail = Column(Integer)
-    quantity = Column(Integer)
-    total_harga_barang = Column(Numeric(10, 2))
-    total_berat_barang = Column(Numeric(10, 2))
-    kota_asal = Column(String(255))
-    kota_tujuan = Column(String(255))
-    jumlah = Column(Integer)
-    harga_pengiriman = Column(Numeric(10, 2))
+    id_log = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_supplier = db.Column(db.Integer, db.ForeignKey('db_supplier.id_supplier'))
+    id_produk = db.Column(db.Integer, db.ForeignKey('db_produk.id_produk'))
+    id_retail = db.Column(db.Integer)
+    quantity = db.Column(db.Integer)
+    total_harga_barang = db.Column(db.Numeric(10, 2))
+    total_berat_barang = db.Column(db.Numeric(10, 2))
+    kota_asal = db.Column(db.String(255))
+    kota_tujuan = db.Column(db.String(255))
+    jumlah = db.Column(db.Integer)
+    harga_pengiriman = db.Column(db.Numeric(10, 2))
 
-    supplier = relationship("Supplier", back_populates="transaksi")
-    produk = relationship("Produk", back_populates="transaksi")
-    pembelian = relationship("Pembelian", back_populates="transaksi")
+    # Relationships
+    supplier = db.relationship('Supplier', back_populates='transaksi')
+    produk = db.relationship('Produk', back_populates='transaksi')
+    pembelian = db.relationship('Pembelian', back_populates='transaksi')
 
-class User(Base):
+class User(UserMixin, db.Model):
     __tablename__ = 'db_user'
 
-    id_user = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(255))
-    password = Column(String(255))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id_user = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(255), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    @property
+    def id(self):
+        return self.id_user
+

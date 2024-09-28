@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrasi</title>
+    <!-- Tambahkan link CSS atau Bootstrap jika diperlukan -->
+</head>
+<body>
+    <h2>Registrasi</h2>
+    <form method="POST">
+        <label>Username:</label><br>
+        <input type="text" name="username" required><br><br>
+        <label>Password:</label><br>
+        <input type="password" name="password" required><br><br>
+        <button type="submit">Daftar</button>
+    </form>
+    <p>Sudah punya akun? <a href="{{ url_for('login') }}">Login di sini</a></p>
+</body>
+</html>

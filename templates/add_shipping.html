@@ -2,11 +2,221 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah Pengiriman</title>
-    <link rel="stylesheet" href="./static/styles.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* Existing styles from Tambah Barang page */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7fb;
+        }
+
+        .sidebar {
+            background-color: #1363c6;
+            color: white;
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: -250px;
+            transition: left 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar h2 {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar li a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar li a:hover {
+            background-color: #0d4ea3;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1001;
+            background-color: #1363c6;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .navbar {
+            background-color: #1363c6;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+        }
+
+        .nav-left {
+            flex: 1;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-admin {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-admin img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .container {
+            margin-top: 60px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.open ~ .container {
+            margin-left: 250px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .crud-btn {
+            background-color: #1363c6;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        form {
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar.open ~ .container {
+                margin-left: 0;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            form {
+                padding: 10px;
+            }
+
+            input, select {
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-right {
+                margin-top: 10px;
+            }
+
+            .container {
+                padding: 5px;
+            }
+
+            input, select {
+                padding: 6px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/manage_product"><i class="fas fa-box"></i> Produk</a></li>
+            <li><a href="/manage_shipping"><i class="fas fa-truck"></i> Pengiriman</a></li>
+            <li><a href="/manage_stock"><i class="fas fa-warehouse"></i> Stok</a></li>
+            <li><a href="/manage_transaksi"><i class="fas fa-exchange-alt"></i> Transaksi</a></li>
+            <li><a href="#"><i class="fas fa-cog"></i> Pengaturan</a></li>
+        </ul>
+    </div>
+
+    <button id="sidebar-toggle">&#9776;</button>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="nav-left">
+            <h1></h1>
+        </div>
+        <div class="nav-right">
+            <div class="user-admin">
+                <img src="https://via.placeholder.com/35" alt="Admin">
+                <span>Admin</span>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <h2>Tambah Pengiriman</h2>
 
@@ -47,5 +257,15 @@
             <button type="submit" class="crud-btn">Simpan</button>
         </form>
     </div>
+
+    <script>
+        // Sidebar Toggle Functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+
+        sidebarToggle.onclick = function() {
+            sidebar.classList.toggle('open');
+        };
+    </script>
 </body>
 </html>
