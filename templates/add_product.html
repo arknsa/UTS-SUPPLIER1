@@ -216,14 +216,15 @@
 
     <div class="container">
         <h2>Tambah Barang</h2>
-
+        
         <!-- Form untuk Tambah Barang -->
         <form id="formTambahBarang" method="POST" action="/add_product">
-            <label for="id_barang">ID Barang:</label>
-            <input type="text" id="id_barang" name="id_barang" required>
+            <!-- Remove ID Barang if it's auto-incremented in the database -->
+            <!-- <label for="id_barang">ID Barang:</label>
+            <input type="text" id="id_barang" name="id_barang" required> -->
 
-            <label for="nama_product">Nama Barang:</label>
-            <input type="text" id="nama_product" name="nama_product" required>
+            <label for="nama_produk">Nama Barang:</label>
+            <input type="text" id="nama_produk" name="nama_produk" required>
 
             <label for="kategori">Kategori:</label>
             <input type="text" id="kategori" name="kategori" required>
